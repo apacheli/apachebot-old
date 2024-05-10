@@ -1,32 +1,23 @@
-const inspectOptions = { depth: 0, colors: true };
-
-export const details = {
-  id: "js",
-  aliases: ["code", "eval", "javascript", "ts", "typescript"],
-  description: "Evaluate JavaScript code.",
-  p: "dev/js",
-  flags: {
-    silent: "print to the terminal",
-  },
-};
-
-export const handler = async (ctx) => {
-  if (ctx.message.author.id !== "460612586061430806") {
-    return;
-  }
+const handler = async (_bot, _message, args) => {
   let result;
   try {
-    result = await eval(ctx.args[0]);
-  } catch (e) {
-    result = e;
-  }
-  if (ctx.kwargs.silent) {
-    console.log(result);
-    return;
+    result = await eval(args[0]);
+  } catch (error) {
+    result = error;
   }
   return {
     files: [
-      new File([Deno.inspect(result, inspectOptions)], `${Date.now()}.ansi`),
+      new File([Bun.inspect(result, { depth: 0 })], `${Date.now()}.js`),
     ],
   };
+};
+
+export default {
+  id: "js",
+  description: "Run JavaScript code.",
+  dev: true,
+  group: "dev",
+  usage: "[code]",
+  source: "/commands/dev/js.js",
+  handler,
 };

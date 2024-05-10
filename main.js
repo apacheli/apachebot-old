@@ -1,59 +1,39 @@
-import { CacheClient, closeOnInterrupt, GatewayClient, RestClient } from "whirlybird";
-import { readDirRecursive } from "@apacheli/std/lib/fs.js";
+import { readdir } from "node:fs/promises";
+import { GatewayClient, RestClient } from "whirlybird";
 
-const token = `Bot ${Deno.env.get("BOT_TOKEN")}`;
+const token = `Bot ${process.env.BOT_TOKEN}`;
 
-const cache = new CacheClient();
 const rest = new RestClient(token);
 
-const handleEvent = (event, data, shard) => {
-  cache.handleEvent(event, data);
-  events.get(event)?.(bot, data, shard);
+const importModules = async (dir) => {
+  const mods = new Map();
+  const files = await readdir(dir, { recursive: true });
+  for (const file of files) {
+    if (file.slice(-3) === ".js") {
+      const mod = await import(`./${dir}/${file}`);
+      mods.set(mod.default.id, mod.default);
+    }
+  }
+  return mods;
 };
 
-const gateway = new GatewayClient({
-  handleEvent,
+const commands = await importModules("commands");
+const events = await importModules("events");
+
+const gateway = new GatewayClient(token, {
+  handleEvent: (event, data) => events.get(event)?.handler?.(client, data),
   identifyOptions: {
     intents: 1 << 9 | 1 << 15,
-    presence: {
-      activities: [{ name: "running on whirlybird", type: 0 }],
-    },
   },
-  token,
+  shards: 1,
   url: "wss://gateway.discord.gg",
 });
 
 gateway.connect();
 
-closeOnInterrupt(gateway);
-
-const aliases = new Map();
-const commands = new Map();
-const events = new Map();
-
-(async () => {
-  for await (const filePath of readDirRecursive("./commands")) {
-    const command = await import(filePath);
-    commands.set(command.details.id, command);
-    for (const alias of command.details.aliases) {
-      aliases.set(alias, command.details.id);
-    }
-  }
-})();
-
-(async () => {
-  for await (const filePath of readDirRecursive("./events")) {
-    const event = await import(filePath);
-    events.set(event.default, event.handler);
-  }
-})();
-
-const bot = {
-  aliases,
-  cache,
+const client = {
   commands,
   events,
   gateway,
-  prefix: "===",
   rest,
 };

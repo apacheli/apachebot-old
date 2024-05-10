@@ -1,28 +1,36 @@
-import { parse } from "@apacheli/std/lib/args_parser.js";
-
-export default "MESSAGE_CREATE";
-
-export const handler = async (bot, message) => {
-  if (message.author.bot || message.content.substring(0, bot.prefix.length) !== bot.prefix) {
+const handler = async (bot, message) => {
+  if (message.author.bot || message.content.substring(0, 3) !== "===") {
     return;
   }
-  const { args, kwargs } = parse(message.content.substring(bot.prefix.length));
-  const commandName = args.shift().toLowerCase();
-  const command = bot.commands.get(commandName) || bot.commands.get(bot.aliases.get(commandName));
-  if (command === undefined) {
+  const content = message.content.substring(3);
+  const r = /```.*([\s\S]*?)```|".*?"|'.*?'|`.*?`|\S+/g;
+  const e = r.exec(content);
+  const command = e && bot.commands.get(e[0]);
+  if (
+    command === undefined ||
+    (command.dev && message.author.id !== process.env.DEVELOPER_ID)
+  ) {
     return;
   }
+  const args = [];
+  let m;
+  while ((m = r.exec(content)) !== null) {
+    args.push(m[1] ?? ("\"'`".includes(m[0][0]) ? m[0].slice(1, -1) : m[0]));
+  }
+  let response;
   try {
-    const response = await command.handler({ args, bot, commandName, kwargs, message });
-    if (response === undefined) {
-      return;
-    }
-    await bot.rest.createMessage(message.channel_id, typeof response === "object" ? response : { body: { content: response } });
+    response = await command.handler(bot, message, args);
   } catch (error) {
-    await bot.rest.createMessage(message.channel_id, {
+    response = {
       body: {
-        content: `An error occurred:\n\n\`\`\`ansi\n${error.name}: ${error.message}\n\`\`\``,
+        content: `Something went wrong! Please report this incident to @apacheli.\n\n\`\`\`\n${Bun.inspect(error, { depth: 0 })}\n\`\`\``,
       },
-    });
+    };
   }
+  await bot.rest.createMessage(message.channel_id, response);
+};
+
+export default {
+  id: "MESSAGE_CREATE",
+  handler,
 };

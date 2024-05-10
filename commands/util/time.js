@@ -1,13 +1,22 @@
-export const details = {
-  id: "time",
-  aliases: ["date", "timestamp"],
-  description: "Display the time.",
-  p: "util/time",
-  flags: {
-    format: "timestamp format",
-  },
+const formats = ["t", "T", "d", "D", "f", "F", "R"];
+
+const handler = async (_bot, _message, args) => {
+  const date = Math.floor((args[0] ? new Date(args[0]).getTime() : Date.now()) / 1e+3);
+  return {
+    body: {
+      embeds: [
+        {
+          fields: formats.map((format) => ({ name: format, value: `<t:${date}:${format}>` })),
+        },
+      ],
+    },
+  };
 };
 
-export const handler = ({ args, kwargs }) => {
-  return `<t:${Math.floor((args[0] ? new Date(args[0]).getTime() : Date.now()) / 1e+3)}:${kwargs.format ?? "f"}>`;
+export default {
+  id: "time",
+  description: "Display the current time.",
+  group: "util",
+  source: "/commands/util/time.js",
+  handler,
 };

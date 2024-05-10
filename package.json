@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "whirlybird": "github:apacheli/whirlybird"
+  }
+}
