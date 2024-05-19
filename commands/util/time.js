@@ -15,8 +15,9 @@ const handler = async (_bot, _message, args) => {
 
 export default {
   id: "time",
-  description: "Display the current time.",
+  description: "Display the time for a date.",
   group: "util",
+  usage: "[date]",
   source: "/commands/util/time.js",
   handler,
 };

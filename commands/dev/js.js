@@ -1,4 +1,4 @@
-const handler = async (_bot, _message, args) => {
+const handler = async (bot, message, args) => {
   let result;
   try {
     result = await eval(args[0]);

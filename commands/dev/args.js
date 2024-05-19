@@ -1,4 +1,4 @@
-const handler = async (_bot, _message, args) => {
+const handler = async (bot, message, args) => {
   return {
     body: {
       content: `\`\`\`json\n${JSON.stringify(args, null, 2)}\n\`\`\``,

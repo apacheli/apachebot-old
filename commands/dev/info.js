@@ -11,9 +11,9 @@ const handler = async (bot) => {
       field("apachebot", "1.0.0", true),
       field("whirlybird", "0.0.1", true),
       field("Bun", process.versions.bun, true),
-      field("Memory Usage", `${(process.memoryUsage().heapUsed / 1048576).toFixed(2)} MB`, true),
-      field("Uptime", `${Math.floor(process.uptime())} s`),
-      field("Gateway Latency", `${latency} ms`, true),
+      field("Memory", `${(process.memoryUsage().heapUsed / 1048576).toFixed(2)} MB`, true),
+      field("Uptime", `${Math.floor(process.uptime() / 60)} m`, true),
+      field("Latency", `${latency} ms`, true),
     ],
   };
   return {

@@ -1,4 +1,4 @@
-const handler = async (bot, _message, args) => {
+const handler = async (bot, message, args) => {
   if (args.length === 0) {
     const groups = {};
     for (const command of bot.commands.values()) {

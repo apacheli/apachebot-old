@@ -1,8 +1,16 @@
 import { readdir } from "node:fs/promises";
-import { GatewayClient, RestClient } from "whirlybird";
+import { CacheClient, flagsAll, GatewayClient, IntentFlags, RestClient } from "whirlybird";
 
 const token = `Bot ${process.env.BOT_TOKEN}`;
 
+const cache = new CacheClient({
+  types: {
+    GUILDS: true,
+    MEMBERS: true,
+    PRESENCES: true,
+    USERS: true,
+  },
+});
 const rest = new RestClient(token);
 
 const importModules = async (dir) => {
@@ -21,9 +29,13 @@ const commands = await importModules("commands");
 const events = await importModules("events");
 
 const gateway = new GatewayClient(token, {
-  handleEvent: (event, data) => events.get(event)?.handler?.(client, data),
+  handleEvent: (event, data) => {
+    cache.receiveEvent(event);
+    cache.handleEvent(event, data);
+    events.get(event)?.handler?.(bot, data);
+  },
   identifyOptions: {
-    intents: 1 << 9 | 1 << 15,
+    intents: flagsAll(IntentFlags),
   },
   shards: 1,
   url: "wss://gateway.discord.gg",
@@ -31,7 +43,8 @@ const gateway = new GatewayClient(token, {
 
 gateway.connect();
 
-const client = {
+const bot = {
+  cache,
   commands,
   events,
   gateway,

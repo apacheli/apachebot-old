@@ -23,7 +23,7 @@ const handler = async (bot, message) => {
   } catch (error) {
     response = {
       body: {
-        content: `Something went wrong! Please report this incident to @apacheli.\n\n\`\`\`\n${Bun.inspect(error, { depth: 0 })}\n\`\`\``,
+        content: `Something went wrong! Please report this incident to @apacheli.\n\n\`\`\`js\n${Bun.inspect(error, { depth: 0 })}\n\`\`\``,
       },
     };
   }
